@@ -20,6 +20,8 @@ plotA <- ggplot(evodiff %>% filter(pLDDT > 1),
   ggtitle("EvoDiff: Perplexity vs. pLDDT") +
   my_theme()
 
+evodiff %>% arrange(Perplexity)
+
 # plot B ------------------------------------------------------------------
 
 RFdiffusion <- read_csv("data/RFdiffusion_perplexity.csv") %>% 
@@ -43,7 +45,7 @@ plotB
 blast <- read_csv("data/Artificial_proteins_Blast.csv") %>%
   inner_join(read_csv("data/minimal.csv")) %>%
   mutate(`Match_e-value` = as.numeric(`Match_e-value`),  # Convert to numeric
-         match = !is.na(`Match_e-value`) & `Match_e-value` < 1)  # Determine match condition
+         match = !is.na(`Match_e-value`) & `Match_e-value` < 0.2)  # Determine match condition
 
 blast_summary <- blast %>%
   group_by(interaction(Label, Tool)) %>%
@@ -81,6 +83,11 @@ names(foldseek_summary)[1] <- "Group"
 foldseek_summary$Group <- c("Evodiff,\n unknotted", "Evodiff,\n knotted", 
                          "RFdiff+MPNN,\n unknotted", "RFdiff+MPNN,\n knotted")
 foldseek_summary$Tool <- c("Evodiff", "Evodiff", "RFdiffusion", "RFdiffusion")
+
+foldseek %>%
+  group_by(Tool) %>%
+  summarise(Percentage = mean(match, na.rm = TRUE) * 100) %>%
+  ungroup()
 
 plotD <- ggplot(foldseek_summary, aes(x = Group, y = Percentage, fill = as.factor(Tool))) + 
   geom_bar(stat = "identity", position = "dodge") + 
